@@ -61,9 +61,8 @@ public class TimeLockManagementResource implements UndertowTimeLockManagementSer
     @Override
     public ListenableFuture<String> achieveConsensus(AuthHeader authHeader, Set<String> namespaces) {
         for (String namespace : namespaces) {
-            Futures.immediateFuture(
-                    NamespacedConsensus
-                            .achieveConsensusForNamespace(timelockNamespaces, namespace));
+            NamespacedConsensus
+                    .achieveConsensusForNamespace(timelockNamespaces, namespace);
         }
         return null;
     }
