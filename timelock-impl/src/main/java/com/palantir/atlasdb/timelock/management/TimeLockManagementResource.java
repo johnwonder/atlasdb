@@ -55,16 +55,17 @@ public class TimeLockManagementResource implements UndertowTimeLockManagementSer
     @Override
     public ListenableFuture<Set<String>> getNamespaces(AuthHeader authHeader) {
         // This endpoint is not used frequently (only called by migration cli), so I'm ok with this NOT being async.
+        System.out.println("In getNamespaces");
         return Futures.immediateFuture(diskNamespaceLoader.getNamespaces());
     }
 
     @Override
-    public ListenableFuture<String> achieveConsensus(AuthHeader authHeader, Set<String> namespaces) {
+    public ListenableFuture<Void> achieveConsensus(AuthHeader authHeader, Set<String> namespaces) {
         for (String namespace : namespaces) {
             NamespacedConsensus
                     .achieveConsensusForNamespace(timelockNamespaces, namespace);
         }
-        return null;
+        return Futures.immediateFuture(null);
     }
 
     public static final class JerseyAdapter implements TimeLockManagementService {
@@ -79,9 +80,11 @@ public class TimeLockManagementResource implements UndertowTimeLockManagementSer
             return unwrap(resource.getNamespaces(authHeader));
         }
 
+
         @Override
-        public String achieveConsensus(AuthHeader authHeader, Set<String> namespaces) {
-            return unwrap(resource.achieveConsensus(authHeader, namespaces));
+        public void achieveConsensus(AuthHeader authHeader, Set<String> namespaces) {
+            // unwrapping here because we want this operation to be synchronous
+            unwrap(resource.achieveConsensus(authHeader, namespaces));
         }
 
         private static <T> T unwrap(ListenableFuture<T> future) {
